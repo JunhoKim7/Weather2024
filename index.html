@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather</title>
+</head>
+<body>
+    <h1>Weather</h1>
+    <select id = "citySelect">
+        <option value = "">Select A City</option>
+    </select>
+    <div id="resultsOutput">?</div>
+    <script>
+        let cities = [
+            {
+                name: "Charlotte Amalie, USVI",
+                latitude: 18.3419,
+                longitude: -64.9307,
+            },
+            {
+                name: "Greenville, NC",
+                latitude: 35.612659,
+                longitude: -77.366356,
+            },
+        ];
+        // cities.forEach(c => citySelect.appendChild(new Option(c.name, `${c.latitude},${c.longitude}`)))
+        cities.forEach(c => citySelect.appendChild(new Option(c.name, encodeURIComponent(JSON.stringify(c) ))));
+
+        citySelect.addEventListener("change", async e => {
+            // resultsOutput.innerText = citySelect.value;
+            const c = JSON.parse(decodeURIComponent(citySelect.value));
+            const lat_lng = `${c.latitude},${c.longitude}`;
+            const urlEndpointResource = "https://api.weather.gov/points/" + lat_lng;
+            const resp = await fetch(urlEndpointResource);
+            const data = await resp.json();
+
+            const secondaryURL = data.properties.forecast;
+            const resp2 = await fetch(secondaryURL);
+            const data2 = await resp2.json();
+            resultsOutput.innerHTML = data2.properties.periods.map(p => `
+                <hr>
+                <h2>${p.name}:</h2>
+                <p>${p.detailedForecast}</p>
+                <img src = "${p.icon}">
+                `).join(``);
+        });
+    </script>
+</body>
+
+</html>
